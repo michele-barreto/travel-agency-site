@@ -1,7 +1,8 @@
 import { formatarValorOpcaoTexto } from '@/lib/formatadores'
 
 // Quantidade por opção de preço (Adulto, Criança, Casal...). Bloqueia o "+"
-// quando as pessoas escolhidas já ocupam todas as vagas.
+// de cada opção quando ela não cabe nas vagas que sobraram (um Casal precisa
+// de 2 vagas livres, não só de 1).
 export function SeletorPassageiros({ opcoes, quantidades, onAlterar, vagasRestantes }) {
   const limiteAtingido = vagasRestantes !== null && vagasRestantes <= 0
 
@@ -9,6 +10,7 @@ export function SeletorPassageiros({ opcoes, quantidades, onAlterar, vagasRestan
     <div className="flex flex-col gap-2">
       {opcoes.map((o) => {
         const quantidade = quantidades[o.rotulo] || 0
+        const naoCabe = vagasRestantes !== null && o.quantidadePessoas > vagasRestantes
         return (
           <div
             key={o.rotulo}
@@ -39,7 +41,7 @@ export function SeletorPassageiros({ opcoes, quantidades, onAlterar, vagasRestan
               <button
                 type="button"
                 onClick={() => onAlterar(o.rotulo, 1)}
-                disabled={limiteAtingido}
+                disabled={naoCabe}
                 className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 text-lg text-neutral-700 transition-colors hover:bg-neutral-100 disabled:opacity-30"
                 aria-label={`Aumentar ${o.rotulo}`}
               >

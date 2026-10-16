@@ -66,7 +66,7 @@ export function duracaoTexto(dataSaida, dataRetorno) {
 // Menor valor por pessoa entre as opções de preço (ex: "Casal" vale para 2).
 // Sem opções cadastradas, cai no precoBase da viagem.
 export function menorPrecoPorPessoa(viagem) {
-  const valores = (Array.isArray(viagem.opcoesPreco) ? viagem.opcoesPreco : []).flatMap((o) => {
+  const valores = opcoesPrecoReservaveis(viagem).flatMap((o) => {
     const pessoas = Number(o.quantidadePessoas) || 1
     return [o.valorPix, o.valorCartao]
       .map(Number)
@@ -212,12 +212,22 @@ export function linkInstagram(instagram) {
   return usuario ? `https://instagram.com/${usuario}` : null
 }
 
+// Guia é tarifa interna da equipe: o cliente não pode reservar.
+function ehOpcaoInterna(opcao) {
+  return /^guias?\b/.test(normalizarBusca(opcao.rotulo))
+}
+
+function opcoesPrecoReservaveis(viagem) {
+  return (Array.isArray(viagem.opcoesPreco) ? viagem.opcoesPreco : []).filter((o) => !ehOpcaoInterna(o))
+}
+
 // Viagens sem opcoesPreco configurado (só precoBase) caem numa única opção
 // genérica, pra a reserva continuar funcionando mesmo sem tarifário por
 // adulto/criança cadastrado.
 export function opcoesPrecoDaViagem(viagem) {
-  if (Array.isArray(viagem.opcoesPreco) && viagem.opcoesPreco.length > 0) {
-    return viagem.opcoesPreco.map((o) => ({
+  const reservaveis = opcoesPrecoReservaveis(viagem)
+  if (reservaveis.length > 0) {
+    return reservaveis.map((o) => ({
       rotulo: o.rotulo,
       valorPix: o.valorPix ?? null,
       valorCartao: o.valorCartao ?? null,
