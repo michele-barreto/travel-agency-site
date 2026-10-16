@@ -2,6 +2,9 @@ const baseURL = import.meta.env.VITE_API_URL
 const empresaId = import.meta.env.VITE_EMPRESA_ID
 
 async function buscar(caminho) {
+  if (!baseURL || !empresaId) {
+    throw new Error('VITE_API_URL ou VITE_EMPRESA_ID não definidos no build')
+  }
   const url = new URL(`${baseURL}${caminho}`)
   url.searchParams.set('empresaId', empresaId)
 

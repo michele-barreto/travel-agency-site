@@ -66,7 +66,10 @@ export default function App() {
         setEmpresa(dadosEmpresa)
         setViagens(dadosViagens)
       })
-      .catch(() => setErro(true))
+      .catch((e) => {
+        console.error('Falha ao carregar o site:', e)
+        setErro(true)
+      })
       .finally(() => setCarregando(false))
   }, [tentativa])
 
@@ -86,6 +89,14 @@ export default function App() {
     if (!empresa?.nome) return
     document.title = viagemAberta ? `${viagemAberta.nome} · ${empresa.nome}` : empresa.nome
   }, [empresa, viagemAberta])
+
+  // Ícone da aba = logo da empresa; sem logo cadastrada, fica o favicon.svg.
+  useEffect(() => {
+    if (!empresa?.logoUrl) return
+    const icone = document.querySelector('link[rel="icon"]')
+    icone.removeAttribute('type')
+    icone.href = empresa.logoUrl
+  }, [empresa])
 
   if (carregando) {
     return (
