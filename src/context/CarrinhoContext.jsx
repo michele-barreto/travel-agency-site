@@ -2,7 +2,10 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 
 const CarrinhoContext = createContext(null)
 
-const chaveStorage = `carrinho-viagens:${import.meta.env.VITE_EMPRESA_ID}`
+// v2: itens passaram a guardar quantidadePessoas (Dupla = 2). Carrinhos da
+// versão anterior não têm o campo e somariam a Dupla como 1 pessoa — trocar
+// a chave descarta esses carrinhos em vez de cobrar errado.
+const chaveStorage = `carrinho-viagens:v2:${import.meta.env.VITE_EMPRESA_ID}`
 
 function carregarInicial() {
   try {

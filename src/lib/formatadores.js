@@ -63,11 +63,15 @@ export function duracaoTexto(dataSaida, dataRetorno) {
   return `${noites + 1} dias · ${noites} ${noites === 1 ? 'noite' : 'noites'}`
 }
 
-// Menor valor por pessoa entre as opções de preço. O valor cadastrado já é
-// por pessoa; quantidadePessoas só diz quantas pessoas a opção ocupa (Dupla = 2).
-// Sem opções cadastradas, cai no precoBase da viagem.
+// "A partir de": menor valor por pessoa entre as opções de adulto. O valor
+// cadastrado já é por pessoa; quantidadePessoas só diz quantas pessoas a
+// opção ocupa (Dupla = 2). Criança fica de fora — "a partir de R$ 890" com
+// o preço infantil engana quem vai como adulto —, a não ser que a viagem só
+// tenha opções de criança. Sem opções cadastradas, cai no precoBase.
 export function menorPrecoPorPessoa(viagem) {
-  const valores = opcoesPrecoReservaveis(viagem).flatMap((o) =>
+  const opcoes = opcoesPrecoReservaveis(viagem).length ? opcoesPrecoDaViagem(viagem) : []
+  const adultos = opcoes.filter((o) => !ehOpcaoCrianca(o))
+  const valores = (adultos.length ? adultos : opcoes).flatMap((o) =>
     [o.valorPix, o.valorCartao].map(Number).filter((v) => Number.isFinite(v) && v > 0)
   )
   if (valores.length) return Math.min(...valores)
@@ -226,6 +230,17 @@ function ehOpcaoInterna(opcao) {
   return /^guias?\b/.test(normalizarBusca(opcao.rotulo))
 }
 
+// O cadastro não marca quais opções são infantis; o rótulo diz ("CD 6 A 7
+// ANOS", "Criança até 10", "CHD", "Infantil").
+function ehOpcaoCrianca(opcao) {
+  const rotulo = normalizarBusca(opcao.rotulo)
+  return /^(cd|chd)\b/.test(rotulo) || /crianc|infantil|\banos\b/.test(rotulo)
+}
+
+function valorOuNulo(valor) {
+  return valor === null || valor === undefined || valor === '' ? null : valor
+}
+
 function opcoesPrecoReservaveis(viagem) {
   return (Array.isArray(viagem.opcoesPreco) ? viagem.opcoesPreco : []).filter((o) => !ehOpcaoInterna(o))
 }
@@ -233,15 +248,23 @@ function opcoesPrecoReservaveis(viagem) {
 // Viagens sem opcoesPreco configurado (só precoBase) caem numa única opção
 // genérica, pra a reserva continuar funcionando mesmo sem tarifário por
 // adulto/criança cadastrado.
+//
+// Opção com um valor só (ex: criança só com Pix, ou viagem antiga com o
+// campo único `valor`) usa esse valor nas duas formas — senão ela entrava
+// como R$ 0 no total do cartão e o cartão saía mais barato que o Pix.
 export function opcoesPrecoDaViagem(viagem) {
   const reservaveis = opcoesPrecoReservaveis(viagem)
   if (reservaveis.length > 0) {
-    return reservaveis.map((o) => ({
-      rotulo: o.rotulo,
-      valorPix: o.valorPix ?? null,
-      valorCartao: o.valorCartao ?? null,
-      quantidadePessoas: Number(o.quantidadePessoas) || 1,
-    }))
+    return reservaveis.map((o) => {
+      const pix = valorOuNulo(o.valorPix) ?? valorOuNulo(o.valor)
+      const cartao = valorOuNulo(o.valorCartao) ?? valorOuNulo(o.valor)
+      return {
+        rotulo: o.rotulo,
+        valorPix: pix ?? cartao,
+        valorCartao: cartao ?? pix,
+        quantidadePessoas: Number(o.quantidadePessoas) || 1,
+      }
+    })
   }
   return [{ rotulo: 'Pessoa', valorPix: viagem.precoBase ?? null, valorCartao: null, quantidadePessoas: 1 }]
 }
