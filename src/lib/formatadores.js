@@ -225,9 +225,10 @@ export function linkInstagram(instagram) {
   return usuario ? `https://instagram.com/${usuario}` : null
 }
 
-// Guia é tarifa interna da equipe: o cliente não pode reservar.
+// Guia é tarifa interna da equipe ("GUIA", "SUITE GUIA"...): o cliente não
+// pode reservar.
 function ehOpcaoInterna(opcao) {
-  return /^guias?\b/.test(normalizarBusca(opcao.rotulo))
+  return /\bguias?\b/.test(normalizarBusca(opcao.rotulo))
 }
 
 // O cadastro não marca quais opções são infantis; o rótulo diz ("CD 6 A 7

@@ -9,6 +9,7 @@ import { Destaque } from '@/components/Destaque'
 import { ComoFunciona } from '@/components/ComoFunciona'
 import { QuemSomos } from '@/components/QuemSomos'
 import { Contato } from '@/components/Contato'
+import { Duvidas } from '@/components/Duvidas'
 import { CarrinhoProvider } from '@/context/CarrinhoContext'
 import { aplicarCores } from '@/lib/cores'
 
@@ -134,6 +135,7 @@ export default function App() {
     empresa.sobre && { href: '#quem-somos', rotulo: 'Quem somos' },
     { href: '#viagens', rotulo: 'Viagens' },
     { href: '#como-funciona', rotulo: 'Como funciona' },
+    { href: '#duvidas', rotulo: 'Dúvidas' },
     { href: '#contato', rotulo: 'Contato' },
   ].filter(Boolean)
 
@@ -147,6 +149,7 @@ export default function App() {
           <QuemSomos empresa={empresa} />
           <SecaoViagens viagens={viagens} onAbrir={abrir} />
           <ComoFunciona />
+          <Duvidas telefoneEmpresa={empresa.telefone} />
           <Contato empresa={empresa} />
         </main>
 

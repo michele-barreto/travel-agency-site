@@ -119,7 +119,7 @@ export function ViagemCard({ viagem, onAbrir }) {
         </div>
 
         <div className="mt-auto flex items-end justify-between gap-3 pt-4">
-          <div>
+          <div className="whitespace-nowrap">
             <span className="block text-xs font-medium text-neutral-400">A partir de</span>
             <span className="text-2xl font-extrabold tracking-tight text-neutral-900">{preco ?? 'Consulte'}</span>
             {preco && <span className="text-xs text-neutral-400"> /pessoa</span>}
@@ -127,7 +127,7 @@ export function ViagemCard({ viagem, onAbrir }) {
           <button
             type="button"
             onClick={() => onAbrir(viagem, { focarReserva: !esgotado })}
-            className="relative z-10 rounded-full bg-destaque px-5 py-2.5 text-sm font-bold text-destaque-texto shadow-sm transition-opacity hover:opacity-90"
+            className="relative z-10 shrink-0 whitespace-nowrap rounded-full bg-destaque px-5 py-2.5 text-sm font-bold text-destaque-texto shadow-sm transition-opacity hover:opacity-90"
           >
             {esgotado ? 'Ver detalhes' : 'Reservar'}
           </button>
