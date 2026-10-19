@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { Painel } from '@/components/Painel'
 import { GaleriaModal } from '@/components/GaleriaModal'
 import { SeletorPassageiros } from '@/components/SeletorPassageiros'
+import { CarrosselFotos } from '@/components/CarrosselFotos'
+import { InfoViagem } from '@/components/InfoViagem'
+import { fotosDaViagem } from '@/lib/fotos'
 import { ValorTotal } from '@/components/ValorTotal'
 import { useCarrinho } from '@/context/CarrinhoContext'
 import {
@@ -44,37 +47,35 @@ function Info({ Icone, titulo, children }) {
   )
 }
 
-// Fotos do detalhe: a capa grande + até 4 miniaturas; qualquer uma abre a
-// galeria completa já naquela foto.
+// Fotos do detalhe: carrossel grande (setas, passa sozinho) + até 4
+// miniaturas no desktop; qualquer uma abre a galeria completa naquela foto.
 function FotosDaViagem({ viagem, onAbrirGaleria }) {
-  const galeria = viagem.galeria ?? []
-  const todas = galeria.flatMap((grupo, g) => grupo.fotos.map((foto, f) => ({ foto, g, f })))
+  const todas = fotosDaViagem(viagem)
   if (!viagem.capa || todas.length === 0) return null
 
-  const posicaoCapa = todas.find((item) => item.foto.id === viagem.capa.id) ?? todas[0]
-  const extras = todas.filter((item) => item !== posicaoCapa).slice(0, 4)
+  // Miniaturas só com a grade completa (4); com menos, sobrava buraco em
+  // branco — o carrossel ocupa a largura toda e já passa por todas.
+  const extras = todas.length >= 5 ? todas.slice(1, 5) : []
 
   return (
-    <div className="grid gap-1.5 sm:grid-cols-4 sm:grid-rows-2">
-      <button
-        type="button"
-        onClick={() => onAbrirGaleria(posicaoCapa.g, posicaoCapa.f)}
-        className="relative aspect-16/10 overflow-hidden bg-neutral-200 sm:col-span-2 sm:row-span-2 sm:aspect-auto"
-        aria-label="Abrir galeria de fotos"
+    <div className={extras.length ? 'grid gap-1.5 sm:grid-cols-4 sm:grid-rows-2' : ''}>
+      <div
+        className={`relative aspect-16/10 bg-neutral-200 ${extras.length ? 'sm:col-span-2 sm:row-span-2 sm:aspect-auto' : 'sm:aspect-2/1'}`}
       >
-        <img
-          src={viagem.capa.grande}
-          alt={viagem.capa.legenda || viagem.nome}
-          className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+        <CarrosselFotos
+          itens={todas}
+          alt={viagem.nome}
+          tamanho="grande"
+          onClicarFoto={(item) => onAbrirGaleria(item.g, item.f)}
         />
-      </button>
+      </div>
       {extras.map((item) => (
         <button
           key={item.foto.id}
           type="button"
           onClick={() => onAbrirGaleria(item.g, item.f)}
           className="relative hidden aspect-4/3 overflow-hidden bg-neutral-200 sm:block"
-          aria-label={`Ver foto: ${item.foto.legenda || galeria[item.g].categoria}`}
+          aria-label={`Ver foto: ${item.foto.legenda || viagem.galeria[item.g].categoria}`}
         >
           <img src={item.foto.miniatura} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 hover:scale-105" />
         </button>
@@ -142,7 +143,13 @@ export function ViagemDetalhe({ viagem, focarReserva, telefoneEmpresa, onFechar 
       destinoTexto,
       periodo: formatarPeriodo(viagem.dataSaida, viagem.dataRetorno),
       opcoes: opcoes
-        .map((o) => ({ rotulo: o.rotulo, valorPix: o.valorPix, valorCartao: o.valorCartao, quantidade: quantidades[o.rotulo] || 0 }))
+        .map((o) => ({
+          rotulo: o.rotulo,
+          valorPix: o.valorPix,
+          valorCartao: o.valorCartao,
+          quantidadePessoas: o.quantidadePessoas,
+          quantidade: quantidades[o.rotulo] || 0,
+        }))
         .filter((o) => o.quantidade > 0),
     })
     onFechar()
@@ -275,6 +282,9 @@ export function ViagemDetalhe({ viagem, focarReserva, telefoneEmpresa, onFechar 
                 <p className="mt-2 whitespace-pre-line leading-relaxed text-neutral-600">{viagem.descricao}</p>
               </div>
             )}
+
+            {/* key: roteiro recolhido de novo ao abrir outra viagem. */}
+            <InfoViagem key={viagem.id} viagem={viagem} />
 
             <div ref={reservaRef} className="scroll-mt-4">
               <h3 className="text-lg font-bold text-neutral-900">{esgotado ? 'Valores' : 'Quem vai viajar?'}</h3>

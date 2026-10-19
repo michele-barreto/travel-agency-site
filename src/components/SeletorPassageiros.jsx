@@ -22,7 +22,8 @@ export function SeletorPassageiros({ opcoes, quantidades, onAlterar, vagasRestan
               <p className="font-semibold text-neutral-900">{o.rotulo}</p>
               <p className="text-sm text-neutral-500">
                 {formatarValorOpcaoTexto(o.valorPix, o.valorCartao)}
-                {o.quantidadePessoas > 1 && ` · para ${o.quantidadePessoas} pessoas`}
+                {o.quantidadePessoas > 1 &&
+                  `${formatarValorOpcaoTexto(o.valorPix, o.valorCartao) === 'Consulte' ? '' : ' por pessoa'} · para ${o.quantidadePessoas} pessoas`}
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">

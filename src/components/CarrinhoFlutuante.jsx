@@ -2,7 +2,13 @@ import { Painel } from '@/components/Painel'
 import { ValorTotal } from '@/components/ValorTotal'
 import { IconeCarrinhoMais, IconeFechar, IconeWhatsapp } from '@/components/Icones'
 import { useCarrinho } from '@/context/CarrinhoContext'
-import { calcularTotaisCarrinho, formatarMensagemCarrinho, formatarTotalTexto, linkWhatsapp } from '@/lib/formatadores'
+import {
+  calcularTotaisCarrinho,
+  formatarMensagemCarrinho,
+  formatarTotalTexto,
+  linkWhatsapp,
+  pessoasDaOpcao,
+} from '@/lib/formatadores'
 
 // Botão flutuante (só aparece com algo no carrinho) + gaveta do pedido.
 // A gaveta também abre sozinha logo depois de adicionar uma viagem.
@@ -79,6 +85,7 @@ export function CarrinhoFlutuante({ telefoneEmpresa }) {
                       {item.opcoes.map((o) => (
                         <li key={o.rotulo}>
                           {o.quantidade}× {o.rotulo}
+                          {pessoasDaOpcao(o) > 1 && ` (${o.quantidade * pessoasDaOpcao(o)} pessoas)`}
                         </li>
                       ))}
                     </ul>

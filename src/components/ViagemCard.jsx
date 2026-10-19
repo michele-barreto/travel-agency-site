@@ -1,5 +1,10 @@
 import { duracaoTexto, formatarPeriodo, formatarPreco, menorPrecoPorPessoa, partesData } from '@/lib/formatadores'
 import { IconeCalendario, IconeFotos, IconeLocal, IconeOnibus, IconeRelogio } from '@/components/Icones'
+import { CarrosselFotos } from '@/components/CarrosselFotos'
+import { fotosDaViagem } from '@/lib/fotos'
+
+// Card não precisa de todas as fotos — a galeria completa fica no detalhe.
+const FOTOS_NO_CARD = 6
 
 // Poucas vagas ganha destaque pra criar senso de urgência sem inventar dado.
 const LIMITE_ULTIMAS_VAGAS = 10
@@ -29,6 +34,7 @@ export function ViagemCard({ viagem, onAbrir }) {
   const data = partesData(dataSaida)
   const destinoTexto = destino ? [destino.nome, destino.estado].filter(Boolean).join(' — ') : null
   const totalFotos = (viagem.galeria ?? []).reduce((soma, grupo) => soma + grupo.fotos.length, 0)
+  const fotos = fotosDaViagem(viagem, FOTOS_NO_CARD)
 
   return (
     <article
@@ -36,15 +42,17 @@ export function ViagemCard({ viagem, onAbrir }) {
         esgotado ? 'opacity-75' : ''
       }`}
     >
-      <div className={`relative aspect-16/10 overflow-hidden ${capa ? 'bg-neutral-200' : 'bg-primaria'}`}>
-        {capa ? (
-          <img
-            src={capa.miniatura}
-            srcSet={`${capa.miniatura} 400w, ${capa.grande} 1600w`}
+      {/* z-10: fica acima do botão "esticado" do título, senão ele engole as
+          setas e o deslizar; clicar na foto abre o detalhe do mesmo jeito. */}
+      <div className={`relative z-10 aspect-16/10 overflow-hidden ${capa ? 'bg-neutral-200' : 'bg-primaria'}`}>
+        {fotos.length > 0 ? (
+          <CarrosselFotos
+            itens={fotos}
+            alt={nome}
             sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
-            alt={capa.legenda || nome}
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            onClicarFoto={() => onAbrir(viagem)}
+            rotuloClique={`Ver detalhes: ${nome}`}
+            focavel={false}
           />
         ) : (
           // Sem fotos: fundo na cor da empresa com o destino em destaque.
@@ -52,19 +60,19 @@ export function ViagemCard({ viagem, onAbrir }) {
             <p className="text-2xl font-extrabold leading-tight text-white/95">{destino?.nome ?? nome}</p>
           </div>
         )}
-        <div className="absolute inset-x-0 top-0 h-20 bg-linear-to-b from-black/40 to-transparent" aria-hidden="true" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-linear-to-b from-black/40 to-transparent" aria-hidden="true" />
 
         {data && (
-          <div className="absolute left-3 top-3 flex flex-col items-center rounded-2xl bg-white px-3 py-1.5 text-center shadow-md">
+          <div className="pointer-events-none absolute left-3 top-3 z-10 flex flex-col items-center rounded-2xl bg-white px-3 py-1.5 text-center shadow-md">
             <span className="text-xl font-extrabold leading-none text-neutral-900">{data.dia}</span>
             <span className="mt-0.5 text-[10px] font-bold tracking-wider text-primaria">{data.mes}</span>
           </div>
         )}
-        <div className="absolute right-3 top-3">
+        <div className="pointer-events-none absolute right-3 top-3 z-10">
           <SeloVagas vagasDisponiveis={vagasDisponiveis} />
         </div>
         {totalFotos > 1 && (
-          <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm">
+          <span className="pointer-events-none absolute bottom-3 right-3 z-10 inline-flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm">
             <IconeFotos className="h-3.5 w-3.5" />
             {totalFotos}
           </span>

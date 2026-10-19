@@ -28,7 +28,8 @@ export function Rodape({ empresa, links }) {
       <div className="border-t border-white/10">
         <div className="mx-auto max-w-6xl px-4 py-5 text-center text-xs sm:text-left">
           © {anoAtual} {titular}
-          {cnpj && ` · CNPJ ${cnpj}`}. Todos os direitos reservados.
+          {cnpj && ` · CNPJ ${cnpj}`}
+          {empresa.cadastur && ` · Cadastur ${empresa.cadastur}`}. Todos os direitos reservados.
         </div>
       </div>
     </footer>

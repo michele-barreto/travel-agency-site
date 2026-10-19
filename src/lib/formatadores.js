@@ -63,16 +63,13 @@ export function duracaoTexto(dataSaida, dataRetorno) {
   return `${noites + 1} dias · ${noites} ${noites === 1 ? 'noite' : 'noites'}`
 }
 
-// Menor valor por pessoa entre as opções de preço (ex: "Casal" vale para 2).
+// Menor valor por pessoa entre as opções de preço. O valor cadastrado já é
+// por pessoa; quantidadePessoas só diz quantas pessoas a opção ocupa (Dupla = 2).
 // Sem opções cadastradas, cai no precoBase da viagem.
 export function menorPrecoPorPessoa(viagem) {
-  const valores = opcoesPrecoReservaveis(viagem).flatMap((o) => {
-    const pessoas = Number(o.quantidadePessoas) || 1
-    return [o.valorPix, o.valorCartao]
-      .map(Number)
-      .filter((v) => Number.isFinite(v) && v > 0)
-      .map((v) => v / pessoas)
-  })
+  const valores = opcoesPrecoReservaveis(viagem).flatMap((o) =>
+    [o.valorPix, o.valorCartao].map(Number).filter((v) => Number.isFinite(v) && v > 0)
+  )
   if (valores.length) return Math.min(...valores)
   const base = Number(viagem.precoBase)
   return Number.isFinite(base) && base > 0 ? base : null
@@ -114,12 +111,20 @@ export function formatarValorOpcaoTexto(valorPix, valorCartao) {
   return pix ?? cartao ?? 'Consulte'
 }
 
+// Pessoas que uma unidade da opção ocupa (Dupla = 2). Itens salvos no
+// carrinho antes desse campo existir contam como 1.
+export function pessoasDaOpcao(opcao) {
+  return Number(opcao.quantidadePessoas) || 1
+}
+
+// Valor da opção é por pessoa: 1 Dupla de R$ 1.290 soma R$ 2.580.
 export function calcularTotaisCarrinho(itens) {
   return itens.reduce(
     (totais, item) => {
       item.opcoes.forEach((o) => {
-        totais.pix += (Number(o.valorPix) || 0) * o.quantidade
-        totais.cartao += (Number(o.valorCartao) || 0) * o.quantidade
+        const pessoas = o.quantidade * pessoasDaOpcao(o)
+        totais.pix += (Number(o.valorPix) || 0) * pessoas
+        totais.cartao += (Number(o.valorCartao) || 0) * pessoas
       })
       return totais
     },
@@ -145,7 +150,11 @@ export function formatarMensagemCarrinho(itens) {
     if (item.periodo) linhas.push(item.periodo)
 
     item.opcoes.forEach((opcao) => {
-      linhas.push(`- ${opcao.quantidade}x ${opcao.rotulo} — ${formatarValorOpcaoTexto(opcao.valorPix, opcao.valorCartao)}`)
+      const pessoas = pessoasDaOpcao(opcao)
+      const ocupacao = pessoas > 1 ? ` (${opcao.quantidade * pessoas} pessoas)` : ''
+      const valor = formatarValorOpcaoTexto(opcao.valorPix, opcao.valorCartao)
+      const porPessoa = valor === 'Consulte' ? '' : ' por pessoa'
+      linhas.push(`- ${opcao.quantidade}x ${opcao.rotulo}${ocupacao} — ${valor}${porPessoa}`)
     })
 
     const { pix, cartao } = calcularTotaisCarrinho([item])

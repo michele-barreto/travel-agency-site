@@ -128,10 +128,12 @@ export default function App() {
   }
 
   // Menu só aponta pra seções que de fato aparecem pra esta empresa.
+  // Ordem institucional: primeiro quem é a agência, depois as viagens.
   const links = [
+    { href: '#inicio', rotulo: 'Início' },
+    empresa.sobre && { href: '#quem-somos', rotulo: 'Quem somos' },
     { href: '#viagens', rotulo: 'Viagens' },
     { href: '#como-funciona', rotulo: 'Como funciona' },
-    empresa.sobre && { href: '#quem-somos', rotulo: 'Quem somos' },
     { href: '#contato', rotulo: 'Contato' },
   ].filter(Boolean)
 
@@ -142,9 +144,9 @@ export default function App() {
 
         <main className="flex-1">
           <Destaque empresa={empresa} totalViagens={viagens.length} />
+          <QuemSomos empresa={empresa} />
           <SecaoViagens viagens={viagens} onAbrir={abrir} />
           <ComoFunciona />
-          <QuemSomos empresa={empresa} />
           <Contato empresa={empresa} />
         </main>
 
