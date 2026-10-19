@@ -66,6 +66,7 @@ function FotosDaViagem({ viagem, onAbrirGaleria }) {
           itens={todas}
           alt={viagem.nome}
           tamanho="grande"
+          sizes="(min-width: 640px) 672px, 100vw"
           onClicarFoto={(item) => onAbrirGaleria(item.g, item.f)}
         />
       </div>
@@ -77,7 +78,7 @@ function FotosDaViagem({ viagem, onAbrirGaleria }) {
           className="relative hidden aspect-4/3 overflow-hidden bg-neutral-200 sm:block"
           aria-label={`Ver foto: ${item.foto.legenda || viagem.galeria[item.g].categoria}`}
         >
-          <img src={item.foto.miniatura} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 hover:scale-105" />
+          <img src={item.foto.miniatura} alt="" loading="lazy" className="h-full w-full object-cover transition-opacity hover:opacity-90" />
         </button>
       ))}
     </div>

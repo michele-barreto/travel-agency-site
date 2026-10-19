@@ -7,3 +7,10 @@ export function fotosDaViagem(viagem, limite = Infinity) {
   if (ordenadas.length === 0 && viagem.capa) return [{ foto: viagem.capa, g: 0, f: 0 }]
   return ordenadas.slice(0, limite)
 }
+
+// srcset com a largura real de cada versão (a API informa; fotos antigas
+// têm miniatura de 400px e grande de até 1600px). O navegador escolhe pelo
+// tamanho em que a foto aparece e pela densidade da tela.
+export function srcSetDaFoto(foto) {
+  return `${foto.miniatura} ${foto.larguraMiniatura ?? 400}w, ${foto.grande} ${foto.largura ?? 1600}w`
+}

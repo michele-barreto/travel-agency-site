@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { IconeSetaDireita, IconeSetaEsquerda } from '@/components/Icones'
+import { srcSetDaFoto } from '@/lib/fotos'
 
 const INTERVALO = 4500
 // Deslize mínimo (px) no celular pra contar como troca de foto.
@@ -89,11 +90,11 @@ export function CarrosselFotos({
         const imagem = carregadas.has(i) && (
           <img
             src={item.foto[tamanho]}
-            srcSet={tamanho === 'miniatura' ? `${item.foto.miniatura} 400w, ${item.foto.grande} 1600w` : undefined}
+            srcSet={srcSetDaFoto(item.foto)}
             sizes={sizes}
             alt={ativa ? item.foto.legenda || alt : ''}
             loading={i === 0 ? 'lazy' : undefined}
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            className="h-full w-full object-cover"
           />
         )
         return (
