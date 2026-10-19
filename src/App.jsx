@@ -153,7 +153,7 @@ export default function App() {
           <Contato empresa={empresa} />
         </main>
 
-        <Rodape empresa={empresa} links={links} />
+        <Rodape empresa={empresa} links={links} viagens={viagens} onAbrirViagem={abrir} />
         <CarrinhoFlutuante telefoneEmpresa={empresa.telefone} />
         <ViagemDetalhe
           viagem={viagemAberta}

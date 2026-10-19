@@ -50,8 +50,3 @@ section[id] {
 @media (prefers-reduced-motion: reduce) {
   .animar-surgir, .animar-subir, .animar-lateral, .sm\:animar-lateral { animation: none; }
 }
-
-/* Barra de rolagem escondida nas fileiras horizontais (filtros, miniaturas)
-   — ainda rola com o dedo/trackpad. */
-.sem-barra { scrollbar-width: none; }
-.sem-barra::-webkit-scrollbar { display: none; }

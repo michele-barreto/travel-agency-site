@@ -10,13 +10,13 @@ function rotuloMes(mes) {
 // próprias viagens abertas (nada de mês sem viagem).
 export function FiltroViagens({ busca, onBusca, meses, mes, onMes }) {
   const chip = (ativo) =>
-    `shrink-0 rounded-full px-4 py-2 text-sm font-semibold capitalize transition-colors ${
+    `rounded-full px-4 py-2 text-sm font-semibold capitalize transition-colors ${
       ativo ? 'bg-neutral-900 text-white' : 'bg-white text-neutral-700 ring-1 ring-neutral-200 hover:bg-neutral-100'
     }`
 
   return (
     <div className="mb-8 flex flex-col gap-3 lg:flex-row lg:items-center">
-      <label className="relative block lg:w-80">
+      <label className="relative block shrink-0 lg:w-80">
         <span className="sr-only">Buscar viagem</span>
         <IconeBusca className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
         <input
@@ -39,7 +39,9 @@ export function FiltroViagens({ busca, onBusca, meses, mes, onMes }) {
       </label>
 
       {meses.length > 1 && (
-        <div className="sem-barra -mx-4 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:px-0" role="group" aria-label="Filtrar por mês">
+        // Quebra linha em vez de rolar de lado: com a barra escondida, os
+        // meses que não cabiam ficavam cortados e ninguém via que existiam.
+        <div className="flex min-w-0 flex-1 flex-wrap gap-2" role="group" aria-label="Filtrar por mês">
           <button type="button" className={chip(!mes)} onClick={() => onMes(null)} aria-pressed={!mes}>
             Todas
           </button>
