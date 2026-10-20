@@ -77,9 +77,8 @@ export function valoresPorPessoa(valorPix, valorCartao) {
 }
 
 // "A partir de" do card e do detalhe: o valor por pessoa (do cartão) em
-// destaque, o Pix como desconto e o total da opção como complemento
-// (Dupla de R$ 950 por pessoa → "R$ 950 /pessoa · ou R$ 850 no Pix ·
-// Dupla R$ 1.900"). Usa a opção marcada como destaque no
+// destaque e o Pix como desconto ("R$ 950 /pessoa · ou R$ 850 no Pix").
+// Usa a opção marcada como destaque no
 // painel; sem destaque (API antiga), o pacote de adulto mais barato pra 2+
 // pessoas — não a POLTRONA avulsa, que anunciaria bem menos que o pacote
 // com hotel. Sem pacote, a opção de adulto mais barata; só criança, a mais
@@ -112,17 +111,6 @@ export function precoDeEntrada(viagem) {
   return Number.isFinite(base) && base > 0 ? { porPessoa: base, pix: null, total: base, pessoas: 1, rotulo: null } : null
 }
 
-// Complemento do "a partir de", depois do "por pessoa": de qual opção é o
-// valor e quanto ela sai inteira ("Dupla R$ 1.700"). Opção individual não
-// tem complemento.
-export function complementoPrecoDeEntrada(preco) {
-  if (!preco || preco.pessoas <= 1) return null
-  const rotulo = preco.rotulo
-    ? preco.rotulo.charAt(0).toUpperCase() + preco.rotulo.slice(1).toLowerCase()
-    : `${preco.pessoas} pessoas`
-  return `${rotulo} ${formatarPreco(preco.total)}`
-}
-
 // Busca sem acento e sem diferenciar maiúsculas ("sao" acha "São Paulo").
 export function normalizarBusca(texto) {
   return (texto ?? '')
@@ -149,16 +137,6 @@ export function formatarPrecoOpcional(valor) {
   return valor === null || valor === undefined || valor === '' ? null : formatarPreco(valor)
 }
 
-// Texto de preço de uma opção (rótulo de opcoesPreco da viagem, ex:
-// "Adulto"/"Criança"). Mostra os dois valores só quando ambos existem e
-// divergem — a agência normalmente cobra o mesmo por Pix e cartão.
-export function formatarValorOpcaoTexto(valorPix, valorCartao) {
-  const pix = formatarPrecoOpcional(valorPix)
-  const cartao = formatarPrecoOpcional(valorCartao)
-  if (pix && cartao && Number(valorPix) !== Number(valorCartao)) return `${cartao} no cartão / ${pix} no Pix`
-  return cartao ?? pix ?? 'Consulte'
-}
-
 // Pessoas que uma unidade da opção ocupa (Dupla = 2). Itens salvos no
 // carrinho antes desse campo existir contam como 1.
 export function pessoasDaOpcao(opcao) {
@@ -180,16 +158,40 @@ export function calcularTotaisCarrinho(itens) {
   )
 }
 
-// Diferente de formatarValorOpcaoTexto: aqui 0 significa "nenhuma opção
-// somada tinha esse valor definido", não um preço de R$ 0 de verdade.
-export function formatarTotalTexto(pix, cartao) {
-  const pixTexto = pix > 0 ? formatarPreco(pix) : null
-  const cartaoTexto = cartao > 0 ? formatarPreco(cartao) : null
-  if (pixTexto && cartaoTexto && pix !== cartao) return `${cartaoTexto} no cartão / ${pixTexto} no Pix`
-  return cartaoTexto ?? pixTexto ?? 'Consulte'
+// Forma de pagamento escolhida no carrinho. Opção sem valor nessa forma
+// (ex: criança só com Pix) usa o valor da outra, como o total já fazia.
+export const FORMAS_PAGAMENTO = { cartao: 'Cartão', pix: 'Pix' }
+
+function valorOpcional(valor) {
+  return valor === null || valor === undefined || valor === '' ? null : Number(valor)
 }
 
-export function formatarMensagemCarrinho(itens) {
+export function valorNaForma(opcao, forma) {
+  const pix = valorOpcional(opcao.valorPix)
+  const cartao = valorOpcional(opcao.valorCartao)
+  return forma === 'pix' ? (pix ?? cartao) : (cartao ?? pix)
+}
+
+export function totalNaForma(itens, forma) {
+  return itens.reduce(
+    (total, item) =>
+      total +
+      item.opcoes.reduce(
+        (soma, o) => soma + (valorNaForma(o, forma) || 0) * o.quantidade * pessoasDaOpcao(o),
+        0
+      ),
+    0
+  )
+}
+
+// Só vale perguntar a forma de pagamento quando muda o valor de algo.
+export function formaDePagamentoMudaValor(itens) {
+  return itens.some((item) =>
+    item.opcoes.some((o) => valorNaForma(o, 'pix') !== valorNaForma(o, 'cartao'))
+  )
+}
+
+export function formatarMensagemCarrinho(itens, forma = 'cartao') {
   const linhas = ['Olá! Gostaria de fazer uma reserva:', '']
 
   itens.forEach((item) => {
@@ -200,18 +202,18 @@ export function formatarMensagemCarrinho(itens) {
     item.opcoes.forEach((opcao) => {
       const pessoas = pessoasDaOpcao(opcao)
       const ocupacao = pessoas > 1 ? ` (${opcao.quantidade * pessoas} pessoas)` : ''
-      const valor = formatarValorOpcaoTexto(opcao.valorPix, opcao.valorCartao)
-      const porPessoa = valor === 'Consulte' ? '' : ' por pessoa'
-      linhas.push(`- ${opcao.quantidade}x ${opcao.rotulo}${ocupacao} — ${valor}${porPessoa}`)
+      const valor = formatarPrecoOpcional(valorNaForma(opcao, forma))
+      linhas.push(`- ${opcao.quantidade}x ${opcao.rotulo}${ocupacao} — ${valor ? `${valor} por pessoa` : 'Consulte'}`)
     })
 
-    const { pix, cartao } = calcularTotaisCarrinho([item])
-    if (pix > 0 || cartao > 0) linhas.push(`Subtotal: ${formatarTotalTexto(pix, cartao)}`)
+    const subtotal = totalNaForma([item], forma)
+    if (subtotal > 0) linhas.push(`Subtotal: ${formatarPreco(subtotal)}`)
     linhas.push('')
   })
 
-  const { pix: totalPix, cartao: totalCartao } = calcularTotaisCarrinho(itens)
-  if (totalPix > 0 || totalCartao > 0) linhas.push(`Total: ${formatarTotalTexto(totalPix, totalCartao)}`)
+  if (formaDePagamentoMudaValor(itens)) linhas.push(`Forma de pagamento: ${FORMAS_PAGAMENTO[forma]}`)
+  const total = totalNaForma(itens, forma)
+  if (total > 0) linhas.push(`Total: ${formatarPreco(total)}`)
 
   return linhas.join('\n').trim()
 }

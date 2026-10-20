@@ -1,13 +1,15 @@
+import { useState } from 'react'
 import { Painel } from '@/components/Painel'
-import { ValorTotal } from '@/components/ValorTotal'
 import { IconeCarrinhoMais, IconeFechar, IconeWhatsapp } from '@/components/Icones'
 import { useCarrinho } from '@/context/CarrinhoContext'
 import {
-  calcularTotaisCarrinho,
+  FORMAS_PAGAMENTO,
+  formaDePagamentoMudaValor,
   formatarMensagemCarrinho,
-  formatarTotalTexto,
+  formatarPreco,
   linkWhatsapp,
   pessoasDaOpcao,
+  totalNaForma,
 } from '@/lib/formatadores'
 
 // Botão flutuante (só aparece com algo no carrinho) + gaveta do pedido.
@@ -16,10 +18,14 @@ export function CarrinhoFlutuante({ telefoneEmpresa }) {
   const { itens, totalItens, removerItem, limparCarrinho, carrinhoAberto, abrirCarrinho, fecharCarrinho } =
     useCarrinho()
 
-  const { pix: totalPix, cartao: totalCartao } = calcularTotaisCarrinho(itens)
+  // Cartão primeiro, como o resto do site. A escolha só aparece quando Pix
+  // e cartão dão valores diferentes — e vai junto na mensagem.
+  const [forma, setForma] = useState('cartao')
+  const escolherForma = formaDePagamentoMudaValor(itens)
+  const total = totalNaForma(itens, forma)
 
   function enviarPedido() {
-    const link = linkWhatsapp(telefoneEmpresa, formatarMensagemCarrinho(itens))
+    const link = linkWhatsapp(telefoneEmpresa, formatarMensagemCarrinho(itens, forma))
     if (!link) return
     window.open(link, '_blank', 'noreferrer')
     limparCarrinho()
@@ -65,7 +71,7 @@ export function CarrinhoFlutuante({ telefoneEmpresa }) {
           ) : (
             <ul className="flex flex-col gap-3">
               {itens.map((item) => {
-                const subtotal = calcularTotaisCarrinho([item])
+                const subtotal = totalNaForma([item], forma)
                 return (
                   <li key={item.viagemId} className="rounded-2xl border border-neutral-200 p-4">
                     <div className="flex items-start justify-between gap-2">
@@ -89,10 +95,8 @@ export function CarrinhoFlutuante({ telefoneEmpresa }) {
                         </li>
                       ))}
                     </ul>
-                    {(subtotal.pix > 0 || subtotal.cartao > 0) && (
-                      <p className="mt-2 text-sm font-semibold text-neutral-900">
-                        {formatarTotalTexto(subtotal.pix, subtotal.cartao)}
-                      </p>
+                    {subtotal > 0 && (
+                      <p className="mt-2 text-sm font-semibold text-neutral-900">{formatarPreco(subtotal)}</p>
                     )}
                   </li>
                 )
@@ -103,9 +107,38 @@ export function CarrinhoFlutuante({ telefoneEmpresa }) {
 
         {itens.length > 0 && (
           <div className="space-y-3 border-t border-neutral-200 p-5">
+            {escolherForma && (
+              <fieldset>
+                <legend className="mb-2 text-sm text-neutral-500">Forma de pagamento</legend>
+                <div className="grid grid-cols-2 gap-2">
+                  {Object.entries(FORMAS_PAGAMENTO).map(([valor, rotulo]) => (
+                    <button
+                      key={valor}
+                      type="button"
+                      onClick={() => setForma(valor)}
+                      aria-pressed={forma === valor}
+                      className={`rounded-full border px-4 py-2.5 text-sm font-semibold transition-colors ${
+                        forma === valor
+                          ? 'border-primaria bg-primaria text-white'
+                          : 'border-neutral-300 text-neutral-700 hover:bg-neutral-100'
+                      }`}
+                    >
+                      {rotulo}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+            )}
             <div className="flex items-start justify-between gap-3">
               <span className="pt-0.5 text-sm text-neutral-500">Total</span>
-              <ValorTotal pix={totalPix} cartao={totalCartao} className="text-right" />
+              <div className="text-right">
+                <p className="text-lg font-extrabold leading-tight text-neutral-900">
+                  {total > 0 ? formatarPreco(total) : 'Consulte'}
+                </p>
+                {escolherForma && total > 0 && (
+                  <p className="text-xs text-neutral-500">no {FORMAS_PAGAMENTO[forma].toLowerCase()}</p>
+                )}
+              </div>
             </div>
             <button
               type="button"

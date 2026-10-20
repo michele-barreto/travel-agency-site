@@ -9,14 +9,12 @@ import { ValorTotal } from '@/components/ValorTotal'
 import { useCarrinho } from '@/context/CarrinhoContext'
 import {
   calcularTotaisCarrinho,
-  duracaoTexto,
   formatarDataLonga,
   formatarHorario,
   formatarPeriodo,
   formatarPreco,
   linkWhatsapp,
   precoDeEntrada,
-  complementoPrecoDeEntrada,
   opcoesPrecoDaViagem,
 } from '@/lib/formatadores'
 import {
@@ -28,7 +26,6 @@ import {
   IconeLocal,
   IconeOnibus,
   IconePessoas,
-  IconeRelogio,
   IconeWhatsapp,
 } from '@/components/Icones'
 
@@ -123,10 +120,9 @@ export function ViagemDetalhe({ viagem, focarReserva, telefoneEmpresa, onFechar 
   const ultimasVagas = !esgotado && viagem.vagasDisponiveis <= LIMITE_ULTIMAS_VAGAS
   const destinoTexto = viagem.destino ? [viagem.destino.nome, viagem.destino.estado].filter(Boolean).join(' — ') : null
   const horarioSaida = formatarHorario(viagem.dataSaida)
-  const duracao = duracaoTexto(viagem.dataSaida, viagem.dataRetorno)
+  const horarioRetorno = formatarHorario(viagem.dataRetorno)
   const entrada = precoDeEntrada(viagem)
   const aPartirDe = entrada ? formatarPreco(entrada.porPessoa) : null
-  const complemento = complementoPrecoDeEntrada(entrada)
   const totalFotos = (viagem.galeria ?? []).reduce((soma, g) => soma + g.fotos.length, 0)
 
   const totalPessoas = opcoes.reduce((soma, o) => soma + (quantidades[o.rotulo] || 0) * o.quantidadePessoas, 0)
@@ -266,11 +262,7 @@ export function ViagemDetalhe({ viagem, focarReserva, telefoneEmpresa, onFechar 
               {viagem.dataRetorno && (
                 <Info Icone={IconeCalendario} titulo="Retorno">
                   {formatarDataLonga(viagem.dataRetorno)}
-                </Info>
-              )}
-              {duracao && (
-                <Info Icone={IconeRelogio} titulo="Duração">
-                  {duracao}
+                  {horarioRetorno && ` às ${horarioRetorno}`}
                 </Info>
               )}
               {aPartirDe && (
@@ -279,7 +271,6 @@ export function ViagemDetalhe({ viagem, focarReserva, telefoneEmpresa, onFechar 
                   {entrada.pix && (
                     <span className="block font-medium text-emerald-700">ou {formatarPreco(entrada.pix)} no Pix</span>
                   )}
-                  {complemento && <span className="block font-normal text-neutral-500">{complemento}</span>}
                 </Info>
               )}
             </div>

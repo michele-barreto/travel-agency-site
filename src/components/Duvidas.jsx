@@ -19,7 +19,7 @@ const PERGUNTAS = [
   {
     pergunta: 'Quais as formas de pagamento?',
     resposta:
-      'Pix ou cartão. Quando os valores são diferentes, cada viagem mostra os dois. As condições, como parcelamento, são combinadas no atendimento.',
+      'Pix ou cartão. Quando os valores são diferentes, cada viagem mostra os dois e você escolhe a forma de pagamento no pedido, antes de enviar pelo WhatsApp. As condições, como parcelamento, são combinadas no atendimento.',
   },
   {
     pergunta: 'Como funcionam os valores de Dupla, Tripla e Quádrupla?',
