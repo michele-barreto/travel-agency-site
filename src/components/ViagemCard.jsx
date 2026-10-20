@@ -1,11 +1,5 @@
-import {
-  duracaoTexto,
-  formatarPeriodo,
-  formatarPreco,
-  partesData,
-  precoDeEntrada,
-} from '@/lib/formatadores'
-import { IconeCalendario, IconeFotos, IconeLocal, IconeOnibus, IconeRelogio } from '@/components/Icones'
+import { formatarDataLonga, formatarHorario, formatarPreco, partesData, precoDeEntrada } from '@/lib/formatadores'
+import { IconeCalendario, IconeFotos, IconeLocal, IconeOnibus } from '@/components/Icones'
 import { CarrosselFotos } from '@/components/CarrosselFotos'
 import { fotosDaViagem } from '@/lib/fotos'
 
@@ -14,6 +8,13 @@ const FOTOS_NO_CARD = 6
 
 // Poucas vagas ganha destaque pra criar senso de urgência sem inventar dado.
 const LIMITE_ULTIMAS_VAGAS = 10
+
+// "sex., 21 de nov. · 22h" — sem horário cadastrado (meia-noite), só a data.
+function dataEHora(data) {
+  const dia = formatarDataLonga(data)
+  const hora = formatarHorario(data)
+  return dia && hora ? `${dia} · ${hora}` : dia
+}
 
 function SeloVagas({ vagasDisponiveis }) {
   if (vagasDisponiveis <= 0) {
@@ -34,8 +35,8 @@ function SeloVagas({ vagasDisponiveis }) {
 export function ViagemCard({ viagem, onAbrir }) {
   const { nome, destino, dataSaida, dataRetorno, vagasDisponiveis, tipoViagem, capa } = viagem
   const esgotado = vagasDisponiveis <= 0
-  const periodo = formatarPeriodo(dataSaida, dataRetorno)
-  const duracao = duracaoTexto(dataSaida, dataRetorno)
+  const saida = dataEHora(dataSaida)
+  const retorno = dataEHora(dataRetorno)
   const entrada = precoDeEntrada(viagem)
   const preco = entrada ? formatarPreco(entrada.porPessoa) : null
   const data = partesData(dataSaida)
@@ -104,19 +105,27 @@ export function ViagemCard({ viagem, onAbrir }) {
           </button>
         </h3>
 
+        {(saida || retorno) && (
+          <div className="flex items-start gap-1.5 text-sm text-neutral-600">
+            <IconeCalendario className="mt-0.5 h-4 w-4 shrink-0 text-neutral-400" />
+            <dl className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5">
+              {saida && (
+                <>
+                  <dt className="font-semibold text-neutral-800">Saída</dt>
+                  <dd>{saida}</dd>
+                </>
+              )}
+              {retorno && (
+                <>
+                  <dt className="font-semibold text-neutral-800">Retorno</dt>
+                  <dd>{retorno}</dd>
+                </>
+              )}
+            </dl>
+          </div>
+        )}
+
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-neutral-600">
-          {periodo && (
-            <span className="inline-flex items-center gap-1.5">
-              <IconeCalendario className="h-4 w-4 text-neutral-400" />
-              {periodo}
-            </span>
-          )}
-          {duracao && (
-            <span className="inline-flex items-center gap-1.5">
-              <IconeRelogio className="h-4 w-4 text-neutral-400" />
-              {duracao}
-            </span>
-          )}
           {tipoViagem && (
             <span className="inline-flex items-center gap-1.5">
               <IconeOnibus className="h-4 w-4 text-neutral-400" />

@@ -47,22 +47,6 @@ export function mesDaViagem(data) {
   return data ? formatoMes.format(new Date(data)) : null
 }
 
-// Noites pela data do calendário (saída 12/11 22h → volta 16/11 6h = 4
-// noites). Mesmo dia = bate e volta.
-export function duracaoTexto(dataSaida, dataRetorno) {
-  if (!dataSaida || !dataRetorno) return null
-  const inicio = new Date(dataSaida)
-  const fim = new Date(dataRetorno)
-  const noites = Math.round(
-    (Date.UTC(fim.getFullYear(), fim.getMonth(), fim.getDate()) -
-      Date.UTC(inicio.getFullYear(), inicio.getMonth(), inicio.getDate())) /
-      86_400_000
-  )
-  if (noites < 0) return null
-  if (noites === 0) return 'Bate e volta'
-  return `${noites + 1} dias · ${noites} ${noites === 1 ? 'noite' : 'noites'}`
-}
-
 // Valores por pessoa de uma opção pro site: o maior (cartão) é o que
 // aparece em destaque, e o Pix entra como desconto — só quando é menor.
 export function valoresPorPessoa(valorPix, valorCartao) {
