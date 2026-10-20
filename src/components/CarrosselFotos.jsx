@@ -25,6 +25,9 @@ export function CarrosselFotos({
   // Enquadramento do object-cover (ex: 'object-[50%_70%]' pra mostrar mais
   // da parte de baixo da foto).
   enquadramento = 'object-center',
+  // Sem setas no celular (só deslizar) — no topo do site elas ficariam por
+  // cima do título.
+  setasNoCelular = true,
   className = '',
 }) {
   const [indice, setIndice] = useState(0)
@@ -65,7 +68,7 @@ export function CarrosselFotos({
   if (total === 0) return null
 
   const setaClasse =
-    'absolute top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-neutral-800 shadow-md transition-opacity hover:bg-white focus-visible:opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/carrossel:opacity-100'
+    `absolute top-1/2 z-10 ${setasNoCelular ? 'flex' : 'hidden sm:flex'} h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-neutral-800 shadow-md transition-opacity hover:bg-white focus-visible:opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/carrossel:opacity-100`
 
   return (
     <div

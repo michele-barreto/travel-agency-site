@@ -1,19 +1,32 @@
 import { useState } from 'react'
 import { linkWhatsapp } from '@/lib/formatadores'
 import { IconeCheck, IconeWhatsapp } from '@/components/Icones'
+import { CarrosselFotos } from '@/components/CarrosselFotos'
 
 const SLOGAN_PADRAO = 'Sua próxima viagem começa aqui'
 const SUBTITULO = 'Conheça nossos roteiros e viaje com quem cuida de cada detalhe, do embarque à volta pra casa.'
 
+// Fotos de capa do painel; sem elas, o banner único antigo (API sem a
+// migration das capas).
+function fotosDeCapa(empresa) {
+  if (empresa.capas?.length) return empresa.capas.map((foto, f) => ({ foto, g: 0, f }))
+  if (empresa.bannerUrl) {
+    const foto = { id: 'banner', grande: empresa.bannerUrl, miniatura: empresa.bannerUrl }
+    return [{ foto, g: 0, f: 0 }]
+  }
+  return []
+}
+
 // Abertura do site, em três versões conforme o que a agência cadastrou:
-// 1. `empresa.bannerUrl` (foto enviada no painel): foto de destino em tela
-//    cheia com o slogan por cima — a cara de site institucional.
+// 1. Fotos de capa (painel): passam sozinhas em tela cheia com o slogan por
+//    cima — a cara de site institucional.
 // 2. Arte de marca em public/banners/<id>.webp (legado, ex: PSY TOUR): a
 //    arte centralizada, bordas dissolvidas na cor da empresa.
 // 3. Nada: faixa na cor da empresa só com texto.
 export function Destaque({ empresa, totalViagens }) {
   const [temArte, setTemArte] = useState(true)
   const slogan = empresa.slogan || SLOGAN_PADRAO
+  const capas = fotosDeCapa(empresa)
 
   const selos = (
     <div className="flex flex-wrap gap-2">
@@ -62,19 +75,22 @@ export function Destaque({ empresa, totalViagens }) {
     </div>
   )
 
-  if (empresa.bannerUrl) {
+  if (capas.length) {
     return (
       <section id="inicio" className="relative flex min-h-[min(78svh,820px)] items-end overflow-hidden bg-neutral-900 text-white sm:items-center">
-        <img src={empresa.bannerUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0">
+          <CarrosselFotos itens={capas} alt="" tamanho="grande" sizes="100vw" focavel={false} setasNoCelular={false} />
+        </div>
         {/* Escurece o lado do texto (embaixo no celular, à esquerda no
-            desktop) pra qualquer foto ficar legível. */}
+            desktop) pra qualquer foto ficar legível. Sem eventos, pra o
+            carrossel embaixo receber o deslizar e as setas. */}
         <div
-          className="absolute inset-0 bg-linear-to-t from-black/85 via-black/55 to-black/15 sm:bg-linear-to-r sm:from-black/75 sm:via-black/40 sm:to-black/0"
+          className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/85 via-black/55 to-black/15 sm:bg-linear-to-r sm:from-black/75 sm:via-black/40 sm:to-black/0"
           aria-hidden="true"
         />
 
-        <div className="relative mx-auto w-full max-w-6xl px-4 pb-14 pt-32 sm:py-24">
-          <div className="max-w-2xl">
+        <div className="pointer-events-none relative mx-auto w-full max-w-6xl px-4 pb-14 pt-32 sm:py-24">
+          <div className="pointer-events-auto max-w-2xl">
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-white/80">{empresa.nome}</p>
             <h1 className="mt-3 text-4xl font-extrabold leading-tight tracking-tight sm:text-6xl">{slogan}</h1>
             <p className="mt-5 max-w-xl text-base text-white/85 sm:text-lg">{SUBTITULO}</p>
