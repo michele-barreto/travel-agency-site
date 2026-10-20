@@ -38,7 +38,8 @@ export function ViagemCard({ viagem, onAbrir }) {
   const periodo = formatarPeriodo(dataSaida, dataRetorno)
   const duracao = duracaoTexto(dataSaida, dataRetorno)
   const entrada = precoDeEntrada(viagem)
-  const preco = entrada ? formatarPreco(entrada.valor) : null
+  const preco = entrada ? formatarPreco(entrada.porPessoa) : null
+  const complemento = complementoPrecoDeEntrada(entrada)
   const data = partesData(dataSaida)
   const destinoTexto = destino ? [destino.nome, destino.estado].filter(Boolean).join(' — ') : null
   const totalFotos = (viagem.galeria ?? []).reduce((soma, grupo) => soma + grupo.fotos.length, 0)
@@ -129,8 +130,14 @@ export function ViagemCard({ viagem, onAbrir }) {
         <div className="mt-auto flex items-end justify-between gap-3 pt-4">
           <div className="whitespace-nowrap">
             <span className="block text-xs font-medium text-neutral-400">A partir de</span>
-            <span className="block text-2xl font-extrabold tracking-tight text-neutral-900">{preco ?? 'Consulte'}</span>
-            {preco && <span className="block text-xs text-neutral-500">{complementoPrecoDeEntrada(entrada)}</span>}
+            <span className="block text-2xl font-extrabold tracking-tight text-neutral-900">
+              {preco ?? 'Consulte'}
+              {preco && <span className="text-xs font-medium text-neutral-500"> /pessoa</span>}
+            </span>
+            {entrada?.pix && (
+              <span className="block text-xs font-medium text-emerald-700">ou {formatarPreco(entrada.pix)} no Pix</span>
+            )}
+            {complemento && <span className="block text-xs text-neutral-500">{complemento}</span>}
           </div>
           <button
             type="button"

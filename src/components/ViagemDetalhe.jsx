@@ -125,7 +125,8 @@ export function ViagemDetalhe({ viagem, focarReserva, telefoneEmpresa, onFechar 
   const horarioSaida = formatarHorario(viagem.dataSaida)
   const duracao = duracaoTexto(viagem.dataSaida, viagem.dataRetorno)
   const entrada = precoDeEntrada(viagem)
-  const aPartirDe = entrada ? formatarPreco(entrada.valor) : null
+  const aPartirDe = entrada ? formatarPreco(entrada.porPessoa) : null
+  const complemento = complementoPrecoDeEntrada(entrada)
   const totalFotos = (viagem.galeria ?? []).reduce((soma, g) => soma + g.fotos.length, 0)
 
   const totalPessoas = opcoes.reduce((soma, o) => soma + (quantidades[o.rotulo] || 0) * o.quantidadePessoas, 0)
@@ -274,7 +275,11 @@ export function ViagemDetalhe({ viagem, focarReserva, telefoneEmpresa, onFechar 
               )}
               {aPartirDe && (
                 <Info Icone={IconePessoas} titulo="A partir de">
-                  {aPartirDe} <span className="font-normal text-neutral-500">· {complementoPrecoDeEntrada(entrada)}</span>
+                  {aPartirDe} por pessoa
+                  {entrada.pix && (
+                    <span className="block font-medium text-emerald-700">ou {formatarPreco(entrada.pix)} no Pix</span>
+                  )}
+                  {complemento && <span className="block font-normal text-neutral-500">{complemento}</span>}
                 </Info>
               )}
             </div>
@@ -340,7 +345,10 @@ export function ViagemDetalhe({ viagem, focarReserva, telefoneEmpresa, onFechar 
               ) : (
                 <>
                   <p className="text-xs text-neutral-500">A partir de</p>
-                  <p className="text-lg font-extrabold text-neutral-900">{aPartirDe ?? 'Consulte'}</p>
+                  <p className="text-lg font-extrabold text-neutral-900">
+                    {aPartirDe ?? 'Consulte'}
+                    {aPartirDe && <span className="text-xs font-medium text-neutral-500"> /pessoa</span>}
+                  </p>
                 </>
               )}
             </div>

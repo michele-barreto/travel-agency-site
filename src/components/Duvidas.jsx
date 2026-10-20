@@ -24,7 +24,7 @@ const PERGUNTAS = [
   {
     pergunta: 'Como funcionam os valores de Dupla, Tripla e Quádrupla?',
     resposta:
-      'Cada opção mostra o valor dela inteira (por exemplo, a Dupla para 2 pessoas) e, embaixo, quanto sai por pessoa. O total do pedido já aparece somado conforme você escolhe as quantidades.',
+      'O valor mostrado é sempre por pessoa. Embaixo aparece quanto sai a opção inteira (por exemplo, a Dupla para 2 pessoas), e o total do pedido já aparece somado conforme você escolhe as quantidades.',
   },
   {
     pergunta: 'Criança paga?',

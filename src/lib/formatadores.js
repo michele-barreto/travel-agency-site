@@ -63,22 +63,35 @@ export function duracaoTexto(dataSaida, dataRetorno) {
   return `${noites + 1} dias · ${noites} ${noites === 1 ? 'noite' : 'noites'}`
 }
 
-// "A partir de" do card e do detalhe: o valor da opção inteira, já somado
-// (Dupla de R$ 850 por pessoa → R$ 1.700). Usa a opção marcada como
-// destaque no painel; sem destaque (API antiga), o pacote de adulto mais
-// barato pra 2+ pessoas — não a POLTRONA avulsa, que anunciaria bem menos
-// que o pacote com hotel. Sem pacote, a opção de adulto mais barata; só
-// criança, a mais barata delas. Sem opções cadastradas, usa o precoBase.
+// Valores por pessoa de uma opção pro site: o maior (cartão) é o que
+// aparece em destaque, e o Pix entra como desconto — só quando é menor.
+export function valoresPorPessoa(valorPix, valorCartao) {
+  const valores = [valorPix, valorCartao]
+    .filter((v) => v !== null && v !== undefined && v !== '')
+    .map(Number)
+    .filter((v) => Number.isFinite(v) && v > 0)
+  if (!valores.length) return null
+  const cheio = Math.max(...valores)
+  const pix = Number(valorPix)
+  return { cheio, pix: Number.isFinite(pix) && pix > 0 && pix < cheio ? pix : null }
+}
+
+// "A partir de" do card e do detalhe: o valor por pessoa (do cartão) em
+// destaque, o Pix como desconto e o total da opção como complemento
+// (Dupla de R$ 950 por pessoa → "R$ 950 /pessoa · ou R$ 850 no Pix ·
+// Dupla R$ 1.900"). Usa a opção marcada como destaque no
+// painel; sem destaque (API antiga), o pacote de adulto mais barato pra 2+
+// pessoas — não a POLTRONA avulsa, que anunciaria bem menos que o pacote
+// com hotel. Sem pacote, a opção de adulto mais barata; só criança, a mais
+// barata delas. Sem opções cadastradas, usa o precoBase.
 export function precoDeEntrada(viagem) {
   const opcoes = opcoesPrecoReservaveis(viagem).length ? opcoesPrecoDaViagem(viagem) : []
   const comTotal = opcoes
     .map((o) => {
-      const porPessoa = Math.min(
-        ...[o.valorPix, o.valorCartao].map(Number).filter((v) => Number.isFinite(v) && v > 0)
-      )
-      return { ...o, total: porPessoa * o.quantidadePessoas }
+      const valores = valoresPorPessoa(o.valorPix, o.valorCartao)
+      return valores && { ...o, ...valores, total: valores.cheio * o.quantidadePessoas }
     })
-    .filter((o) => Number.isFinite(o.total))
+    .filter(Boolean)
 
   const destaque = comTotal.find((o) => o.destaque)
   const adultos = comTotal.filter((o) => !ehOpcaoCrianca(o))
@@ -86,19 +99,28 @@ export function precoDeEntrada(viagem) {
   const candidatas = destaque ? [destaque] : pacotes.length ? pacotes : adultos.length ? adultos : comTotal
   if (candidatas.length) {
     const escolhida = candidatas.reduce((menor, o) => (o.total < menor.total ? o : menor))
-    return { valor: escolhida.total, pessoas: escolhida.quantidadePessoas, rotulo: escolhida.rotulo }
+    return {
+      porPessoa: escolhida.cheio,
+      pix: escolhida.pix,
+      total: escolhida.total,
+      pessoas: escolhida.quantidadePessoas,
+      rotulo: escolhida.rotulo,
+    }
   }
 
   const base = Number(viagem.precoBase)
-  return Number.isFinite(base) && base > 0 ? { valor: base, pessoas: 1, rotulo: null } : null
+  return Number.isFinite(base) && base > 0 ? { porPessoa: base, pix: null, total: base, pessoas: 1, rotulo: null } : null
 }
 
-// Complemento do "a partir de": "/pessoa" pra opção individual, ou de qual
-// opção é o valor ("Dupla · 2 pessoas").
+// Complemento do "a partir de", depois do "por pessoa": de qual opção é o
+// valor e quanto ela sai inteira ("Dupla R$ 1.700"). Opção individual não
+// tem complemento.
 export function complementoPrecoDeEntrada(preco) {
-  if (!preco || preco.pessoas <= 1) return 'por pessoa'
-  const rotulo = preco.rotulo ? preco.rotulo.charAt(0).toUpperCase() + preco.rotulo.slice(1).toLowerCase() : null
-  return [rotulo, `${preco.pessoas} pessoas`].filter(Boolean).join(' · ')
+  if (!preco || preco.pessoas <= 1) return null
+  const rotulo = preco.rotulo
+    ? preco.rotulo.charAt(0).toUpperCase() + preco.rotulo.slice(1).toLowerCase()
+    : `${preco.pessoas} pessoas`
+  return `${rotulo} ${formatarPreco(preco.total)}`
 }
 
 // Busca sem acento e sem diferenciar maiúsculas ("sao" acha "São Paulo").
