@@ -155,8 +155,8 @@ export function formatarPrecoOpcional(valor) {
 export function formatarValorOpcaoTexto(valorPix, valorCartao) {
   const pix = formatarPrecoOpcional(valorPix)
   const cartao = formatarPrecoOpcional(valorCartao)
-  if (pix && cartao && Number(valorPix) !== Number(valorCartao)) return `${pix} no Pix / ${cartao} no cartão`
-  return pix ?? cartao ?? 'Consulte'
+  if (pix && cartao && Number(valorPix) !== Number(valorCartao)) return `${cartao} no cartão / ${pix} no Pix`
+  return cartao ?? pix ?? 'Consulte'
 }
 
 // Pessoas que uma unidade da opção ocupa (Dupla = 2). Itens salvos no
@@ -185,8 +185,8 @@ export function calcularTotaisCarrinho(itens) {
 export function formatarTotalTexto(pix, cartao) {
   const pixTexto = pix > 0 ? formatarPreco(pix) : null
   const cartaoTexto = cartao > 0 ? formatarPreco(cartao) : null
-  if (pixTexto && cartaoTexto && pix !== cartao) return `${pixTexto} no Pix / ${cartaoTexto} no cartão`
-  return pixTexto ?? cartaoTexto ?? 'Consulte'
+  if (pixTexto && cartaoTexto && pix !== cartao) return `${cartaoTexto} no cartão / ${pixTexto} no Pix`
+  return cartaoTexto ?? pixTexto ?? 'Consulte'
 }
 
 export function formatarMensagemCarrinho(itens) {

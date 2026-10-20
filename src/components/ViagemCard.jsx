@@ -1,5 +1,4 @@
 import {
-  complementoPrecoDeEntrada,
   duracaoTexto,
   formatarPeriodo,
   formatarPreco,
@@ -39,7 +38,6 @@ export function ViagemCard({ viagem, onAbrir }) {
   const duracao = duracaoTexto(dataSaida, dataRetorno)
   const entrada = precoDeEntrada(viagem)
   const preco = entrada ? formatarPreco(entrada.porPessoa) : null
-  const complemento = complementoPrecoDeEntrada(entrada)
   const data = partesData(dataSaida)
   const destinoTexto = destino ? [destino.nome, destino.estado].filter(Boolean).join(' — ') : null
   const totalFotos = (viagem.galeria ?? []).reduce((soma, grupo) => soma + grupo.fotos.length, 0)
@@ -137,7 +135,6 @@ export function ViagemCard({ viagem, onAbrir }) {
             {entrada?.pix && (
               <span className="block text-xs font-medium text-emerald-700">ou {formatarPreco(entrada.pix)} no Pix</span>
             )}
-            {complemento && <span className="block text-xs text-neutral-500">{complemento}</span>}
           </div>
           <button
             type="button"
