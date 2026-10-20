@@ -1,4 +1,22 @@
-import { formatarValorOpcaoTexto } from '@/lib/formatadores'
+import { formatarPrecoOpcional, formatarValorOpcaoTexto } from '@/lib/formatadores'
+
+// Valor da opção inteira (por pessoa × pessoas); sem valor continua sem.
+function totalDaOpcao(valorPorPessoa, pessoas) {
+  return valorPorPessoa === null || valorPorPessoa === undefined || valorPorPessoa === ''
+    ? valorPorPessoa
+    : Number(valorPorPessoa) * pessoas
+}
+
+// Referência curta embaixo do total: só um valor por pessoa (o do Pix, que
+// é o menor) — o total logo acima já mostra Pix e cartão.
+function textoPorPessoa(o) {
+  const pix = formatarPrecoOpcional(o.valorPix)
+  const cartao = formatarPrecoOpcional(o.valorCartao)
+  const valor = pix ?? cartao
+  if (!valor) return `${o.quantidadePessoas} pessoas`
+  const forma = pix && cartao && Number(o.valorPix) !== Number(o.valorCartao) ? ' no Pix' : ''
+  return `${valor} por pessoa${forma} · ${o.quantidadePessoas} pessoas`
+}
 
 // Quantidade por opção de preço (Adulto, Criança, Casal...). Bloqueia o "+"
 // de cada opção quando ela não cabe nas vagas que sobraram (um Casal precisa
@@ -20,11 +38,18 @@ export function SeletorPassageiros({ opcoes, quantidades, onAlterar, vagasRestan
           >
             <div className="min-w-0">
               <p className="font-semibold text-neutral-900">{o.rotulo}</p>
-              <p className="text-sm text-neutral-500">
-                {formatarValorOpcaoTexto(o.valorPix, o.valorCartao)}
-                {o.quantidadePessoas > 1 &&
-                  `${formatarValorOpcaoTexto(o.valorPix, o.valorCartao) === 'Consulte' ? '' : ' por pessoa'} · para ${o.quantidadePessoas} pessoas`}
-              </p>
+              {o.quantidadePessoas > 1 ? (
+                // Opção para várias pessoas: o total dela em destaque (é o que
+                // soma no pedido) e o por pessoa embaixo, como referência.
+                <>
+                  <p className="text-sm font-medium text-neutral-700">
+                    {formatarValorOpcaoTexto(totalDaOpcao(o.valorPix, o.quantidadePessoas), totalDaOpcao(o.valorCartao, o.quantidadePessoas))}
+                  </p>
+                  <p className="text-xs text-neutral-500">{textoPorPessoa(o)}</p>
+                </>
+              ) : (
+                <p className="text-sm text-neutral-500">{formatarValorOpcaoTexto(o.valorPix, o.valorCartao)}</p>
+              )}
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <button

@@ -22,9 +22,9 @@ const PERGUNTAS = [
       'Pix ou cartão. Quando os valores são diferentes, cada viagem mostra os dois. As condições, como parcelamento, são combinadas no atendimento.',
   },
   {
-    pergunta: 'O valor é por pessoa?',
+    pergunta: 'Como funcionam os valores de Dupla, Tripla e Quádrupla?',
     resposta:
-      'Sim. Em opções como Dupla, Tripla ou Quádrupla, o valor mostrado é por pessoa, e o total já aparece somado conforme você escolhe as quantidades.',
+      'Cada opção mostra o valor dela inteira (por exemplo, a Dupla para 2 pessoas) e, embaixo, quanto sai por pessoa. O total do pedido já aparece somado conforme você escolhe as quantidades.',
   },
   {
     pergunta: 'Criança paga?',

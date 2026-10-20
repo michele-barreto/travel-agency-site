@@ -1,4 +1,11 @@
-import { duracaoTexto, formatarPeriodo, formatarPreco, menorPrecoPorPessoa, partesData } from '@/lib/formatadores'
+import {
+  complementoPrecoDeEntrada,
+  duracaoTexto,
+  formatarPeriodo,
+  formatarPreco,
+  partesData,
+  precoDeEntrada,
+} from '@/lib/formatadores'
 import { IconeCalendario, IconeFotos, IconeLocal, IconeOnibus, IconeRelogio } from '@/components/Icones'
 import { CarrosselFotos } from '@/components/CarrosselFotos'
 import { fotosDaViagem } from '@/lib/fotos'
@@ -30,7 +37,8 @@ export function ViagemCard({ viagem, onAbrir }) {
   const esgotado = vagasDisponiveis <= 0
   const periodo = formatarPeriodo(dataSaida, dataRetorno)
   const duracao = duracaoTexto(dataSaida, dataRetorno)
-  const preco = formatarPreco(menorPrecoPorPessoa(viagem))
+  const entrada = precoDeEntrada(viagem)
+  const preco = entrada ? formatarPreco(entrada.valor) : null
   const data = partesData(dataSaida)
   const destinoTexto = destino ? [destino.nome, destino.estado].filter(Boolean).join(' — ') : null
   const totalFotos = (viagem.galeria ?? []).reduce((soma, grupo) => soma + grupo.fotos.length, 0)
@@ -121,8 +129,8 @@ export function ViagemCard({ viagem, onAbrir }) {
         <div className="mt-auto flex items-end justify-between gap-3 pt-4">
           <div className="whitespace-nowrap">
             <span className="block text-xs font-medium text-neutral-400">A partir de</span>
-            <span className="text-2xl font-extrabold tracking-tight text-neutral-900">{preco ?? 'Consulte'}</span>
-            {preco && <span className="text-xs text-neutral-400"> /pessoa</span>}
+            <span className="block text-2xl font-extrabold tracking-tight text-neutral-900">{preco ?? 'Consulte'}</span>
+            {preco && <span className="block text-xs text-neutral-500">{complementoPrecoDeEntrada(entrada)}</span>}
           </div>
           <button
             type="button"

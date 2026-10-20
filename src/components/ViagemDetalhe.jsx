@@ -15,7 +15,8 @@ import {
   formatarPeriodo,
   formatarPreco,
   linkWhatsapp,
-  menorPrecoPorPessoa,
+  precoDeEntrada,
+  complementoPrecoDeEntrada,
   opcoesPrecoDaViagem,
 } from '@/lib/formatadores'
 import {
@@ -123,7 +124,8 @@ export function ViagemDetalhe({ viagem, focarReserva, telefoneEmpresa, onFechar 
   const destinoTexto = viagem.destino ? [viagem.destino.nome, viagem.destino.estado].filter(Boolean).join(' — ') : null
   const horarioSaida = formatarHorario(viagem.dataSaida)
   const duracao = duracaoTexto(viagem.dataSaida, viagem.dataRetorno)
-  const aPartirDe = formatarPreco(menorPrecoPorPessoa(viagem))
+  const entrada = precoDeEntrada(viagem)
+  const aPartirDe = entrada ? formatarPreco(entrada.valor) : null
   const totalFotos = (viagem.galeria ?? []).reduce((soma, g) => soma + g.fotos.length, 0)
 
   const totalPessoas = opcoes.reduce((soma, o) => soma + (quantidades[o.rotulo] || 0) * o.quantidadePessoas, 0)
@@ -272,7 +274,7 @@ export function ViagemDetalhe({ viagem, focarReserva, telefoneEmpresa, onFechar 
               )}
               {aPartirDe && (
                 <Info Icone={IconePessoas} titulo="A partir de">
-                  {aPartirDe} por pessoa
+                  {aPartirDe} <span className="font-normal text-neutral-500">· {complementoPrecoDeEntrada(entrada)}</span>
                 </Info>
               )}
             </div>
