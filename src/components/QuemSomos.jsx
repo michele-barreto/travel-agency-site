@@ -14,10 +14,18 @@ export function QuemSomos({ empresa }) {
   const fotos = empresa.fotos ?? []
   const itens = fotos.map((foto, f) => ({ foto, g: 0, f }))
   const galeria = [{ categoria: empresa.nome, fotos }]
+  // Fotos de celular em pé (fachada da loja) num quadro deitado perdiam
+  // quase tudo — só sobrava o céu do meio. A maioria em pé → quadro 3:4,
+  // mais estreito ao lado do texto, puxado pra baixo, onde fica a fachada.
+  const emPe = fotos.filter((f) => f.altura > f.largura).length > fotos.length / 2
 
   return (
     <section id="quem-somos" className="py-16 sm:py-20">
-      <div className={`mx-auto grid max-w-6xl items-center gap-10 px-4 ${fotos.length ? 'md:grid-cols-2' : 'md:grid-cols-5'}`}>
+      <div
+        className={`mx-auto grid max-w-6xl items-center gap-10 px-4 ${
+          !fotos.length ? 'md:grid-cols-5' : emPe ? 'md:grid-cols-[22rem_1fr] lg:grid-cols-[26rem_1fr]' : 'md:grid-cols-2'
+        }`}
+      >
         <div className={fotos.length ? '' : 'md:col-span-3'}>
           <p className="text-sm font-bold uppercase tracking-wider text-primaria">Quem somos</p>
           <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-neutral-900">Conheça a {empresa.nome}</h2>
@@ -31,11 +39,16 @@ export function QuemSomos({ empresa }) {
         </div>
 
         {fotos.length > 0 ? (
-          <div className="relative aspect-4/3 overflow-hidden rounded-3xl bg-neutral-200 shadow-lg md:order-first">
+          <div
+            className={`relative overflow-hidden rounded-3xl bg-neutral-200 shadow-lg md:order-first ${
+              emPe ? 'mx-auto aspect-3/4 w-full max-w-sm md:max-w-none' : 'aspect-4/3'
+            }`}
+          >
             <CarrosselFotos
               itens={itens}
               alt={empresa.nome}
-              sizes="(min-width: 768px) 560px, 100vw"
+              sizes={emPe ? '(min-width: 1024px) 416px, (min-width: 768px) 352px, 384px' : '(min-width: 768px) 560px, 100vw'}
+              enquadramento={emPe ? 'object-[50%_70%]' : 'object-center'}
               onClicarFoto={(item) => setFotoAberta(item.f)}
               rotuloClique="Ver foto em tela cheia"
             />

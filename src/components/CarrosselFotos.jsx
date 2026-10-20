@@ -22,6 +22,9 @@ export function CarrosselFotos({
   onClicarFoto,
   rotuloClique = 'Abrir galeria de fotos',
   focavel = true,
+  // Enquadramento do object-cover (ex: 'object-[50%_70%]' pra mostrar mais
+  // da parte de baixo da foto).
+  enquadramento = 'object-center',
   className = '',
 }) {
   const [indice, setIndice] = useState(0)
@@ -94,7 +97,7 @@ export function CarrosselFotos({
             sizes={sizes}
             alt={ativa ? item.foto.legenda || alt : ''}
             loading={i === 0 ? 'lazy' : undefined}
-            className="h-full w-full object-cover"
+            className={`h-full w-full object-cover ${enquadramento}`}
           />
         )
         return (

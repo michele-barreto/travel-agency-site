@@ -64,14 +64,21 @@ function SeloCadastur({ numero }) {
       target="_blank"
       rel="noreferrer"
       title="Consultar no Cadastur — Ministério do Turismo"
-      className="mt-5 inline-flex items-center gap-3 rounded-xl border border-neutral-200 bg-white px-3 py-2 transition-colors hover:border-primaria"
+      className="mt-5 inline-flex flex-col gap-1.5 rounded-xl border border-neutral-200 bg-white px-4 py-3 transition-colors hover:border-primaria"
     >
+      {/* Marca horizontal (480×77): em cima, com o número embaixo. */}
       {temSelo && (
-        <img src="/selos/cadastur.png" alt="Cadastur" onError={() => setTemSelo(false)} className="h-9 w-auto" />
+        <img
+          src="/selos/cadastur.png"
+          alt="Cadastur"
+          width="480"
+          height="77"
+          onError={() => setTemSelo(false)}
+          className="h-6 w-auto"
+        />
       )}
-      <span className="text-xs leading-tight">
-        <span className="block font-semibold text-neutral-800">{temSelo ? 'Agência cadastrada' : 'Cadastur'}</span>
-        <span className="block text-neutral-500">nº {numero}</span>
+      <span className="text-xs leading-tight text-neutral-500">
+        {temSelo ? 'Agência cadastrada' : 'Cadastur'} · nº {numero}
       </span>
     </a>
   )
