@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { IconeCheck, IconeLocal, IconeRelogio } from '@/components/Icones'
-import { formatarPrecoOpcional } from '@/lib/formatadores'
 
 // Roteiro longo começa recolhido pra não empurrar a reserva lá pra baixo.
 const DIAS_VISIVEIS = 3
@@ -14,10 +13,9 @@ function Titulo({ children }) {
 // no painel; seção sem dado não aparece.
 export function InfoViagem({ viagem }) {
   const [roteiroAberto, setRoteiroAberto] = useState(false)
-  // Inclusão opcional é cobrada à parte: vai pra uma lista própria, com o preço.
-  const todasInclusoes = viagem.inclusoes ?? []
-  const inclusoes = todasInclusoes.filter((i) => !i.opcional)
-  const opcionais = todasInclusoes.filter((i) => i.opcional)
+  // Inclusão opcional é cobrada à parte: o cliente escolhe na seção
+  // "Opcionais" da reserva (ViagemDetalhe), não aparece aqui.
+  const inclusoes = (viagem.inclusoes ?? []).filter((i) => !i.opcional)
   const locais = viagem.locaisSaida ?? []
   const roteiro = viagem.itinerario ?? []
   const roteiroVisivel = roteiroAberto ? roteiro : roteiro.slice(0, DIAS_VISIVEIS)
@@ -34,24 +32,6 @@ export function InfoViagem({ viagem }) {
                   <IconeCheck className="h-3 w-3" />
                 </span>
                 {item.descricao}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {opcionais.length > 0 && (
-        <div>
-          <Titulo>Opcionais</Titulo>
-          <ul className="mt-3 divide-y divide-neutral-100 rounded-2xl border border-neutral-200">
-            {opcionais.map((item) => (
-              <li key={item.descricao} className="flex items-center justify-between gap-3 p-3.5 text-sm text-neutral-700">
-                <span className="min-w-0">{item.descricao}</span>
-                {formatarPrecoOpcional(item.preco) && (
-                  <span className="shrink-0 font-bold text-neutral-900 tabular-nums">
-                    {formatarPrecoOpcional(item.preco)}
-                  </span>
-                )}
               </li>
             ))}
           </ul>

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Painel } from '@/components/Painel'
 import { GaleriaModal } from '@/components/GaleriaModal'
 import { SeletorPassageiros } from '@/components/SeletorPassageiros'
-import { SeletorPasseios } from '@/components/SeletorPasseios'
+import { SeletorAdicionais } from '@/components/SeletorAdicionais'
 import { CarrosselFotos } from '@/components/CarrosselFotos'
 import { InfoViagem } from '@/components/InfoViagem'
 import { fotosDaViagem } from '@/lib/fotos'
@@ -87,8 +87,9 @@ function FotosDaViagem({ viagem, onAbrirGaleria }) {
 export function ViagemDetalhe({ viagem, focarReserva, telefoneEmpresa, onFechar }) {
   const { itemDoCarrinho, adicionarOuAtualizarItem, abrirCarrinho } = useCarrinho()
   const [quantidades, setQuantidades] = useState({})
-  // Passeios: id do passeio → quantas pessoas vão.
+  // Passeios e inclusões opcionais: id → quantas pessoas levam.
   const [qtdPasseios, setQtdPasseios] = useState({})
+  const [qtdOpcionais, setQtdOpcionais] = useState({})
   const [galeria, setGaleria] = useState(null) // { grupo, foto }
   const [linkCopiado, setLinkCopiado] = useState(false)
   const reservaRef = useRef(null)
@@ -106,6 +107,9 @@ export function ViagemDetalhe({ viagem, focarReserva, telefoneEmpresa, onFechar 
     setQuantidades(iniciais)
     setQtdPasseios(
       Object.fromEntries((itemAtual?.passeios ?? []).map((p) => [p.id, p.quantidade]))
+    )
+    setQtdOpcionais(
+      Object.fromEntries((itemAtual?.opcionais ?? []).map((p) => [p.id, p.quantidade]))
     )
     setLinkCopiado(false)
     // itemDoCarrinho muda a cada alteração do carrinho; só interessa ao abrir.
@@ -135,14 +139,21 @@ export function ViagemDetalhe({ viagem, focarReserva, telefoneEmpresa, onFechar 
   const vagasRestantes =
     typeof viagem.vagasDisponiveis === 'number' ? viagem.vagasDisponiveis - totalPessoas : null
   const passeios = viagem.passeios ?? []
-  // Passeio não passa do total de passageiros: se o cliente tirar gente
-  // depois de escolher, a quantidade do passeio cai junto.
-  const passeiosEscolhidos = passeios
-    .map((p) => ({ id: p.id, nome: p.nome, valor: p.valor, quantidade: Math.min(qtdPasseios[p.id] || 0, totalPessoas) }))
-    .filter((p) => p.quantidade > 0)
+  const opcionais = (viagem.inclusoes ?? [])
+    .filter((i) => i.opcional)
+    .map((i) => ({ id: i.id, nome: i.descricao, valor: i.preco }))
+  // Adicional não passa do total de passageiros: se o cliente tirar gente
+  // depois de escolher, a quantidade cai junto.
+  const escolhidos = (itens, qtd) =>
+    itens
+      .map((p) => ({ ...p, quantidade: Math.min(qtd[p.id] || 0, totalPessoas) }))
+      .filter((p) => p.quantidade > 0)
+  const passeiosEscolhidos = escolhidos(passeios, qtdPasseios)
+  const opcionaisEscolhidos = escolhidos(opcionais, qtdOpcionais)
   const itemEmEdicao = {
     opcoes: opcoes.map((o) => ({ ...o, quantidade: quantidades[o.rotulo] || 0 })),
     passeios: passeiosEscolhidos,
+    opcionais: opcionaisEscolhidos,
   }
   const { pix, cartao } = calcularTotaisCarrinho([itemEmEdicao])
   const jaNoCarrinho = !!itemDoCarrinho(viagem.id)
@@ -151,8 +162,8 @@ export function ViagemDetalhe({ viagem, focarReserva, telefoneEmpresa, onFechar 
     setQuantidades((atual) => ({ ...atual, [rotulo]: Math.max(0, (atual[rotulo] || 0) + delta) }))
   }
 
-  function alterarPasseio(id, delta) {
-    setQtdPasseios((atual) => ({
+  const alterarAdicional = (setQtd) => (id, delta) => {
+    setQtd((atual) => ({
       ...atual,
       [id]: Math.max(0, Math.min(totalPessoas, (atual[id] || 0) + delta)),
     }))
@@ -174,6 +185,7 @@ export function ViagemDetalhe({ viagem, focarReserva, telefoneEmpresa, onFechar 
         }))
         .filter((o) => o.quantidade > 0),
       passeios: passeiosEscolhidos,
+      opcionais: opcionaisEscolhidos,
     })
     onFechar()
     abrirCarrinho()
@@ -328,14 +340,27 @@ export function ViagemDetalhe({ viagem, focarReserva, telefoneEmpresa, onFechar 
               )}
             </div>
 
+            {!esgotado && opcionais.length > 0 && (
+              <div>
+                <h3 className="text-lg font-bold text-neutral-900">Opcionais</h3>
+                <p className="mb-3 text-sm text-neutral-500">Cobrados à parte, por pessoa. Não é obrigatório.</p>
+                <SeletorAdicionais
+                  itens={opcionais}
+                  quantidades={qtdOpcionais}
+                  onAlterar={alterarAdicional(setQtdOpcionais)}
+                  totalPessoas={totalPessoas}
+                />
+              </div>
+            )}
+
             {!esgotado && passeios.length > 0 && (
               <div>
                 <h3 className="text-lg font-bold text-neutral-900">Passeios opcionais</h3>
                 <p className="mb-3 text-sm text-neutral-500">Quantas pessoas vão em cada passeio? Não é obrigatório.</p>
-                <SeletorPasseios
-                  passeios={passeios}
+                <SeletorAdicionais
+                  itens={passeios}
                   quantidades={qtdPasseios}
-                  onAlterar={alterarPasseio}
+                  onAlterar={alterarAdicional(setQtdPasseios)}
                   totalPessoas={totalPessoas}
                 />
               </div>

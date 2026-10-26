@@ -1,11 +1,12 @@
-import { formatarPreco } from '@/lib/formatadores'
+import { formatarPrecoOpcional } from '@/lib/formatadores'
 
-// Passeios opcionais da viagem: quantas pessoas vão em cada um. Não passa do
-// total de passageiros escolhidos acima — passeio é por pessoa da reserva.
-export function SeletorPasseios({ passeios, quantidades, onAlterar, totalPessoas }) {
+// Adicionais da viagem (passeios e inclusões opcionais): quantas pessoas
+// levam cada um. Não passa do total de passageiros escolhidos acima — é por
+// pessoa da reserva. `itens`: [{ id, nome, valor }]; valor null = "Consulte".
+export function SeletorAdicionais({ itens, quantidades, onAlterar, totalPessoas }) {
   return (
     <div className="flex flex-col gap-2">
-      {passeios.map((p) => {
+      {itens.map((p) => {
         const quantidade = quantidades[p.id] || 0
         return (
           <div
@@ -16,7 +17,9 @@ export function SeletorPasseios({ passeios, quantidades, onAlterar, totalPessoas
           >
             <div className="min-w-0">
               <p className="font-semibold text-neutral-900">{p.nome}</p>
-              <p className="text-sm font-medium text-neutral-700">{formatarPreco(p.valor)} por pessoa</p>
+              <p className="text-sm font-medium text-neutral-700">
+                {formatarPrecoOpcional(p.valor) ? `${formatarPrecoOpcional(p.valor)} por pessoa` : 'Consulte'}
+              </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <button

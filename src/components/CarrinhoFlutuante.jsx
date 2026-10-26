@@ -99,6 +99,11 @@ export function CarrinhoFlutuante({ telefoneEmpresa }) {
                           {p.quantidade}× {p.nome} <span className="text-neutral-400">(passeio)</span>
                         </li>
                       ))}
+                      {(item.opcionais ?? []).map((p) => (
+                        <li key={`opcional-${p.id}`}>
+                          {p.quantidade}× {p.nome} <span className="text-neutral-400">(opcional)</span>
+                        </li>
+                      ))}
                     </ul>
                     {subtotal > 0 && (
                       <p className="mt-2 text-sm font-semibold text-neutral-900">{formatarPreco(subtotal)}</p>
