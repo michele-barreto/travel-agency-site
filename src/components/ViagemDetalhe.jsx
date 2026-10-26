@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Painel } from '@/components/Painel'
 import { GaleriaModal } from '@/components/GaleriaModal'
 import { SeletorPassageiros } from '@/components/SeletorPassageiros'
+import { SeletorPasseios } from '@/components/SeletorPasseios'
 import { CarrosselFotos } from '@/components/CarrosselFotos'
 import { InfoViagem } from '@/components/InfoViagem'
 import { fotosDaViagem } from '@/lib/fotos'
@@ -86,6 +87,8 @@ function FotosDaViagem({ viagem, onAbrirGaleria }) {
 export function ViagemDetalhe({ viagem, focarReserva, telefoneEmpresa, onFechar }) {
   const { itemDoCarrinho, adicionarOuAtualizarItem, abrirCarrinho } = useCarrinho()
   const [quantidades, setQuantidades] = useState({})
+  // Passeios: id do passeio → quantas pessoas vão.
+  const [qtdPasseios, setQtdPasseios] = useState({})
   const [galeria, setGaleria] = useState(null) // { grupo, foto }
   const [linkCopiado, setLinkCopiado] = useState(false)
   const reservaRef = useRef(null)
@@ -101,6 +104,9 @@ export function ViagemDetalhe({ viagem, focarReserva, telefoneEmpresa, onFechar 
       iniciais[o.rotulo] = itemAtual?.opcoes.find((sel) => sel.rotulo === o.rotulo)?.quantidade ?? 0
     })
     setQuantidades(iniciais)
+    setQtdPasseios(
+      Object.fromEntries((itemAtual?.passeios ?? []).map((p) => [p.id, p.quantidade]))
+    )
     setLinkCopiado(false)
     // itemDoCarrinho muda a cada alteração do carrinho; só interessa ao abrir.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -128,12 +134,28 @@ export function ViagemDetalhe({ viagem, focarReserva, telefoneEmpresa, onFechar 
   const totalPessoas = opcoes.reduce((soma, o) => soma + (quantidades[o.rotulo] || 0) * o.quantidadePessoas, 0)
   const vagasRestantes =
     typeof viagem.vagasDisponiveis === 'number' ? viagem.vagasDisponiveis - totalPessoas : null
-  const itemEmEdicao = { opcoes: opcoes.map((o) => ({ ...o, quantidade: quantidades[o.rotulo] || 0 })) }
+  const passeios = viagem.passeios ?? []
+  // Passeio não passa do total de passageiros: se o cliente tirar gente
+  // depois de escolher, a quantidade do passeio cai junto.
+  const passeiosEscolhidos = passeios
+    .map((p) => ({ id: p.id, nome: p.nome, valor: p.valor, quantidade: Math.min(qtdPasseios[p.id] || 0, totalPessoas) }))
+    .filter((p) => p.quantidade > 0)
+  const itemEmEdicao = {
+    opcoes: opcoes.map((o) => ({ ...o, quantidade: quantidades[o.rotulo] || 0 })),
+    passeios: passeiosEscolhidos,
+  }
   const { pix, cartao } = calcularTotaisCarrinho([itemEmEdicao])
   const jaNoCarrinho = !!itemDoCarrinho(viagem.id)
 
   function alterar(rotulo, delta) {
     setQuantidades((atual) => ({ ...atual, [rotulo]: Math.max(0, (atual[rotulo] || 0) + delta) }))
+  }
+
+  function alterarPasseio(id, delta) {
+    setQtdPasseios((atual) => ({
+      ...atual,
+      [id]: Math.max(0, Math.min(totalPessoas, (atual[id] || 0) + delta)),
+    }))
   }
 
   function confirmar() {
@@ -151,6 +173,7 @@ export function ViagemDetalhe({ viagem, focarReserva, telefoneEmpresa, onFechar 
           quantidade: quantidades[o.rotulo] || 0,
         }))
         .filter((o) => o.quantidade > 0),
+      passeios: passeiosEscolhidos,
     })
     onFechar()
     abrirCarrinho()
@@ -304,6 +327,19 @@ export function ViagemDetalhe({ viagem, focarReserva, telefoneEmpresa, onFechar 
                 />
               )}
             </div>
+
+            {!esgotado && passeios.length > 0 && (
+              <div>
+                <h3 className="text-lg font-bold text-neutral-900">Passeios opcionais</h3>
+                <p className="mb-3 text-sm text-neutral-500">Quantas pessoas vão em cada passeio? Não é obrigatório.</p>
+                <SeletorPasseios
+                  passeios={passeios}
+                  quantidades={qtdPasseios}
+                  onAlterar={alterarPasseio}
+                  totalPessoas={totalPessoas}
+                />
+              </div>
+            )}
 
             {duvidaWhatsapp && (
               <a

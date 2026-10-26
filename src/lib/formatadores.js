@@ -127,6 +127,12 @@ export function pessoasDaOpcao(opcao) {
   return Number(opcao.quantidadePessoas) || 1
 }
 
+// Passeios opcionais escolhidos (valor por pessoa, igual no Pix e no
+// cartão). Itens salvos no carrinho antes dos passeios não têm o campo.
+export function totalPasseios(item) {
+  return (item.passeios ?? []).reduce((soma, p) => soma + (Number(p.valor) || 0) * p.quantidade, 0)
+}
+
 // Valor da opção é por pessoa: 1 Dupla de R$ 1.290 soma R$ 2.580.
 export function calcularTotaisCarrinho(itens) {
   return itens.reduce(
@@ -136,6 +142,9 @@ export function calcularTotaisCarrinho(itens) {
         totais.pix += (Number(o.valorPix) || 0) * pessoas
         totais.cartao += (Number(o.valorCartao) || 0) * pessoas
       })
+      const passeios = totalPasseios(item)
+      totais.pix += passeios
+      totais.cartao += passeios
       return totais
     },
     { pix: 0, cartao: 0 }
@@ -163,7 +172,8 @@ export function totalNaForma(itens, forma) {
       item.opcoes.reduce(
         (soma, o) => soma + (valorNaForma(o, forma) || 0) * o.quantidade * pessoasDaOpcao(o),
         0
-      ),
+      ) +
+      totalPasseios(item),
     0
   )
 }
@@ -189,6 +199,14 @@ export function formatarMensagemCarrinho(itens, forma = 'cartao') {
       const valor = formatarPrecoOpcional(valorNaForma(opcao, forma))
       linhas.push(`- ${opcao.quantidade}x ${opcao.rotulo}${ocupacao} — ${valor ? `${valor} por pessoa` : 'Consulte'}`)
     })
+
+    const passeios = item.passeios ?? []
+    if (passeios.length) {
+      linhas.push('Passeios opcionais:')
+      passeios.forEach((p) => {
+        linhas.push(`- ${p.quantidade}x ${p.nome} — ${formatarPreco(p.valor)} por pessoa`)
+      })
+    }
 
     const subtotal = totalNaForma([item], forma)
     if (subtotal > 0) linhas.push(`Subtotal: ${formatarPreco(subtotal)}`)
